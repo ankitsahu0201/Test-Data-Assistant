@@ -1,0 +1,156 @@
+<%- include("partials/header"); -%>
+
+<div class="row">
+  <fieldset>
+    <legend><%= stepNo %></legend>
+    <% if (stepNo.localeCompare("Step1") == 0){ %>
+      <label for="tableCnt">Mention the number of datasets/tables : </label>
+      <% if(tableData.length > 0){ %>
+        <input type="number" name="tableCntVal" id="tableCntVal" value="<%= tableData.length %>" placeholder="0" onchange="generateGrids()">
+      <% } else { %>
+        <input type="number" name="tableCntVal" id="tableCntVal" value="" placeholder="0" onchange="generateGrids()">
+      <% } %>
+    <% } %>
+  </fieldset>
+</div>
+
+<% if (stepNo.localeCompare("Step1") == 0){ %>
+<div class="row marginLine blocks">
+  <% if(tableData.length > 0){ %>
+    <% for (var i =0; i<tableData.length; i++){ %>
+      <div class='col col-lg-4 col-md-6 col-sm-6'><input type='text' class='tables' placeholder='Name?' autocomplete='none' value = "<%= tableData[i].name %>" ><br><label class="labelTabSeq"><i>Table-<%= i+1 %></i></label> </div>
+    <% } %>
+  <% } %>
+<% } else if (stepNo.localeCompare("Step2") == 0){ %>
+<div class="row marginLine tabsNav">
+  <%  for (var i =0; i<tableData.length; i++){ %>
+        <% let element = tableData[i];   %>
+        <% let btnSeq = i + 1; %>
+        <% let btnId = "btn" + btnSeq; %>
+            <% if (i == 0) { %>
+              <div class="col col-lg-1 tabs"><button type="button" data-name="<%= element.name %>" class="btn btn-primary finalTables" id="<%= btnId %>" onclick="defineSchema(this)">Table-<%= btnSeq %></button></div>
+            <% } else { %>
+              <div class="col col-lg-1 tabs"><button type="button" data-name="<%= element.name %>" class="btn btn-dark finalTables" id="<%= btnId %>" onclick="defineSchema(this)">Table-<%= btnSeq %></button></div>
+            <% } %>
+        <% } %>
+</div>
+
+<div class="row marginLine tabsNav">
+  <%  for (var i =0; i<tableData.length; i++){ %>
+        <% let element = tableData[i];   %>
+        <% let btnSeq = i + 1; %>
+        <% let schemaId = "schemaBlock-" + btnSeq; %>
+            <% if (i == 0) { %>
+              <div class="overflow-auto blocksExtended border border-dark visible custom-scrollbar-css" id="<%= schemaId %>"><br><h3 style="width:100%;"><u><%= element.name %></u></h3>
+                <% if (tableAttributes.length==0){ %>
+                  <br><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
+                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
+                <% } else{ %>
+                  <br>
+                  <% tableAttributes.forEach(function(item) { %>
+                      <% if(element.name == item.table){ %>
+                        <input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br>
+
+                      <% } %>
+                  <% }); %>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
+                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= tableOptions[i].recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= tableOptions[i].recordDelimiter %></span></p>
+                <% } %>
+
+                </div>
+            <% } else { %>
+              <div class="overflow-auto blocksExtended border border-dark invisible custom-scrollbar-css" id="<%= schemaId %>"><br><h3 style="width:100%;"><u><%= element.name %></u></h3>
+                <% if (tableAttributes.length==0){ %>
+                  <br><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)"><b>+</b></button><br>
+                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
+                <% } else{ %>
+                  <br>
+                  <% tableAttributes.forEach(function(item) { %>
+                      <% if(element.name == item.table){ %>
+                        <input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br>
+
+                      <% } %>
+                  <% }); %>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
+                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= tableOptions[i].recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= tableOptions[i].recordDelimiter %></span></p>
+                <% } %>
+
+                </div>
+            <% } %>
+        <% } %>
+</div>
+<script>
+  // Dealing with Input width
+  let el = document.querySelector(".input-wrap .input");
+  let widthMachine = document.querySelector(".input-wrap .width-machine");
+  el.addEventListener("keyup", () => {
+    widthMachine.innerHTML = el.value + 1;
+  });
+</script>
+
+<% } else { %>
+<div class="invisible hiddenTemplate">
+  <select name="tables" class="tabNameLeft"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
+  <select name="attributes" class="tabAttrLeft"><option value="" selected disabled hidden>Choose Field</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.fieldName %>"><%= element.fieldName %></option><% }) %></select>
+  <b> = </b>
+  <select name="tables" class="tabNameRight"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
+  <select name="attributes" class="tabAttrRight"><option value="" selected disabled hidden>Choose Field</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.fieldName %>"><%= element.fieldName %></option><% }) %></select>
+  <br>
+</div>
+
+<div class="row marginLine tabsNav">
+  <div class="overflow-auto blocksExtended blocksExtendedPlus border border-dark visible custom-scrollbar-css" id="relationships">
+    <br><br><h3 style="width:100%;"><u>Define Table Relationships<i>(Optional)</i></u></h3><br>
+    <select name="tables" class="tabNameLeft"><option value="" selected disabled hidden>Choose Table</option>
+      <% tableAttributes.forEach(function(element){ %>
+        <option value="<%= element.table %>"><%= element.table %></option>
+      <% }) %></select>
+    <select name="attributes" class="tabAttrLeft"><option value="" selected disabled hidden>Choose Field</option></select>
+    <b> = </b>
+    <select name="tables" class="tabNameRight"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
+    <select name="attributes" class="tabAttrRight"><option value="" selected disabled hidden>Choose Field</option></select>
+    <br>
+    <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addRelationship" onclick="addNewRelationship(this)"><b>+</b></button>
+  </div>
+<% } %>
+</div>
+
+
+
+<div class="row ">
+  <div class="col-lg startBtn">
+    <% if (stepNo.localeCompare("Step1") == 0){ %>
+      <button type="button" class="btn btn-outline-primary btn-sm btnNavig" disabled>Previous</button>
+      <% if(tableData.length > 0){ %>
+        <button type="button" class="btn btn-outline-primary btn-sm btnNavig" id="Step1NextBtn" onclick="validateTableNames()">Next</button>
+      <% } else{ %>
+        <button type="button" class="btn btn-outline-primary btn-sm btnNavig" id="Step1NextBtn" disabled onclick="validateTableNames()">Next</button>
+      <% } %>
+      <script type="text/javascript" src="../js/generateGrids.js"></script>
+      <script type="text/javascript" src="../js/validateTableNames.js"></script>
+
+    <% }else if (stepNo.localeCompare("Step2") == 0){ %>
+      <button type="button" class="btn btn-outline-primary btn-sm btnNavig" onclick="location.href = '/start/Step1';">Previous</button>
+      <button type="button" class="btn btn-outline-primary btn-sm btnNavig" onclick="validateTableSchema()">Next</button>
+      <script type="text/javascript" src="../js/validateTableSchema.js"></script>
+    <% }else if (stepNo.localeCompare("Step3") == 0){ %>
+      <button type="button" class="btn btn-outline-primary btn-sm btnNavig" onclick="location.href = '/start/Step2';">Previous</button>
+      <button type="button" class="btn btn-outline-success btn-sm btnNavig" onclick="generateData()">Generate</button>
+      <script type="text/javascript" src="../js/generateData.js"></script>
+    <% } %>
+  </div>
+</div>
+
+<div class="alert warning" id="alertWarning">
+</div>
+
+<script>
+  $(".option1").removeClass("active");
+  $(".option2").addClass("active");
+  $(".container-fluid").css('padding-top','50px');
+</script>
+
+
+<%- include("partials/footer"); -%>

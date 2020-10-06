@@ -1,0 +1,47 @@
+<%- include("partials/header"); -%>
+
+<script>
+  $(".option1").removeClass("active");
+  $(".option2").addClass("active");
+  $(".container-fluid").css('padding-top','50px');
+</script>
+
+<div class="row">
+  <fieldset>
+    <legend class="resultLegend">Result</legend>
+  </fieldset>
+</div>
+
+<div class="row marginLine tabsNav">
+  <div class="overflow-auto blocksExtended blocksExtendedPlus border border-dark visible custom-scrollbar-css green" id="relationships">
+    <br><h3 style="width:100%; color:#007bff;"><u>Generated Data</u></h3><br><br>
+
+    <div class="block-Box">
+    <% for(var i=0; i<tableData.length; i++) { %>
+      <p><strong> <%= tableData[i].name %> </strong></p>
+      <% var dataHTML = generatedData[i].testData.replace(/\n/g, "<br>"); %>
+      <% var resultBlkSeq = i + 1; %>
+      <div class="overflow-auto blocksExtended blocksExtendedPlusPlus border border-secondary visible" id="result-<%= resultBlkSeq %>"> <p> <%- dataHTML %> </p> </div>
+      <div class="link" style="text-align: right;"><a href="/result/<%= baseDir %>/file/<%= tableData[i].name %>"> Download Data </a></div><br>
+    <% } %>
+    </div
+
+  </div>
+</div>
+</div>
+
+<div class="row">
+  <div class="col-lg startBtn">
+    <button type="button" class="btn btn-outline-primary btn-sm btnNavig" onclick="location.href = '/start/Step3';">Previous</button>
+    <button type="button" class="btn btn-outline-info btn-sm btnNavig" onclick="location.href = '/contact';">Feedback</button>
+  </div>
+</div>
+
+<!-- <script type="text/javascript">
+    window.onload = function(){
+        alert("Loaded");
+    }
+</script> -->
+
+
+<%- include("partials/footer"); -%>
