@@ -56,6 +56,22 @@ for (var i=0; i<tableCnt ; i++){
                 document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
               }
               break;
+          case "randomData.generateDecimal": if (fieldOptionValue.includes(",")){
+                let userInput = fieldOptionValue.split(",");
+                if (!$.isNumeric(userInput[0].trim())){
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                  incompleteFlag=true;
+                }else if (!$.isNumeric(userInput[1].trim())){
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                  incompleteFlag=true;
+                }else{
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
+                }
+              }else{
+                document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                incompleteFlag=true;
+              }
+              break;
           case "randomData.generate.string": if(fieldOptionValue.length ==0 ){
                 document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
                 incompleteFlag=true;
@@ -86,13 +102,73 @@ for (var i=0; i<tableCnt ; i++){
                 document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
               }
               break;
-          case "default": if(fieldOptionValue.length ==0 ){
+
+          case "default":
+          case "shuffler":
+          if(fieldOptionValue.length == 0){
+            document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+            incompleteFlag=true;
+          }else{
+            document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
+          }
+          break;
+
+          case "dt.dateLessThan" :
+          case "dt.dateGreaterThan":
+          case "dt.datetimeLessThan":
+          case "dt.datetimeGreaterThan" :
+              if(fieldOptionValue.length == 0){
                 document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
                 incompleteFlag=true;
+              }else if(fieldOptionValue.includes("-")){
+                var temp = fieldOptionValue.trim().split('-');
+                var d = new Date(temp[0] + '/' + temp[1] + '/' + temp[2]);
+                var formatCheck = (d && (d.getMonth() + 1) == temp[1] && d.getDate() == Number(temp[2]) && d.getFullYear() == Number(temp[0]));
+                if (formatCheck){
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
+                }else{
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                  incompleteFlag=true;
+                }
               }else{
-                document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
+                document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                incompleteFlag=true;
               }
               break;
+
+          case "dt.dateBetween":
+          case "dt.datetimeBetween":
+              alert(fieldOptionValue);
+              if (fieldOptionValue.includes("-") && fieldOptionValue.includes("&")){
+                let userInput = fieldOptionValue.split("&");
+                let temp="";
+                let d="";
+                let formatCheck="";
+                let flagValidation="true";
+
+                for(var i = 0; i<2 ; i++){
+                  temp = userInput[i].trim().split('-');
+                  d = new Date(temp[0] + '/' + temp[1] + '/' + temp[2]);
+                  formatCheck = (d && (d.getMonth() + 1) == temp[1] && d.getDate() == Number(temp[2]) && d.getFullYear() == Number(temp[0]));
+                  if (!formatCheck){
+                    flagValidation="false";
+                    break;
+                  }
+                }
+
+                if(flagValidation){
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="white";
+                }
+                else {
+                  document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                  incompleteFlag=true;
+                }
+              }else {
+                document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].style.backgroundColor="#FC7573";
+                incompleteFlag=true;
+              }
+              break;
+
         }
       }
 
@@ -130,7 +206,7 @@ if(! errorFlag){
       allAttributesArray.push(document.querySelector("#btn" + tabSeq).getAttribute('data-name'));
       allAttributesArray.push(document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldName")[j].value.trim());
       allAttributesArray.push(document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldType")[j].value.trim());
-      allAttributesArray.push(document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].value.trim());
+      allAttributesArray.push(document.querySelectorAll("#schemaBlock-" + tabSeq + " .fieldOption")[j].value.trim().replace(/,/g," & "));
     }
 
     tableOptions.push(document.querySelector("#btn" + tabSeq).getAttribute('data-name'));

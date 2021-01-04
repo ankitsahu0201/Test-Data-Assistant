@@ -1,0 +1,2 @@
+cust_id INT,
+acct_id TINYint

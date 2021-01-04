@@ -35,48 +35,129 @@
         <% } %>
 </div>
 
+<script>
+  function checkExt(element) {
+   if(element.value.lastIndexOf(".txt")==-1) {
+       $("#alertWarning").html('<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span>');
+       $("#alertWarning").append("<strong> Error!</strong> Only txt files are allowed.");
+       $("#alertWarning").css('display','block');
+       setTimeout(function(){
+         $("#alertWarning").css('display','none');
+       }, 5000);
+       return false;
+   }
+   else {
+      element.parentElement.submit();
+   }
+  }
+  </script>
+
+  <script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip({
+            placement : 'top'
+        });
+    });
+  </script>
+
+<% if (tableAttributes.length > 0 ){ %>
+<div class="invisible" id="tableAttr">
+  <% let i = 1; %>
+  <% tableAttributes.forEach(function(fdata){ %>
+    <div class="div<%= i %>"><label for="table" class="tname"><%= fdata.table %></label><label for="fieldName" class="fname"><%= fdata.fieldName %></label><label for="fieldType" class="ftype"><%= fdata.fieldType %></label></div>
+    <% i++; %>
+  <% }); %>
+</div>
+<% } %>
+
 <div class="row marginLine tabsNav">
   <%  for (var i =0; i<tableData.length; i++){ %>
         <% let element = tableData[i];   %>
         <% let btnSeq = i + 1; %>
         <% let schemaId = "schemaBlock-" + btnSeq; %>
+        <% let fileDropId = "fileDrop-" + btnSeq; %>
             <% if (i == 0) { %>
               <div class="overflow-auto blocksExtended border border-dark visible custom-scrollbar-css" id="<%= schemaId %>"><br><h3 style="width:100%;"><u><%= element.name %></u></h3>
                 <% if (tableAttributes.length==0){ %>
-                  <br><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br>
+                  <br><div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br></div>
                   <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
                   <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
                 <% } else{ %>
                   <br>
+                  <% let flag1=false; %>
                   <% tableAttributes.forEach(function(item) { %>
                       <% if(element.name == item.table){ %>
-                        <input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br>
-
+                        <% if(item.fieldType == "randomData.generateDecimal"){ %>
+                          <% var modifiedOption = item.fieldOption.replace(/ & /g,','); %>
+                          <div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= modifiedOption %>" disabled="true"><br></div>
+                          <% flag1=true; %>
+                        <% }else { %>
+                          <div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br></div>
+                          <% flag1=true; %>
+                        <% } %>
+                      <% } %>
+                    <% }); %>
+                      <% if (!flag1) { %>
+                        <div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br></div>
+                      <% } %>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
+                  <% let labelFlag1=false; %>
+                  <% tableOptions.forEach(function(item) { %>
+                      <% if(element.name == item.table){ %>
+                        <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= item.recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= item.recordDelimiter %></span></p>
+                        <% labelFlag1=true; %>
                       <% } %>
                   <% }); %>
-                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
-                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= tableOptions[i].recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= tableOptions[i].recordDelimiter %></span></p>
+                      <% if (!labelFlag1) { %>
+                        <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
+                      <% } %>
                 <% } %>
+                <br><p><i>Or</i></p><br>
 
+                <form action="/file-upload/<%= btnSeq %>/table/<%= element.name %>" method="post" class="dropzone" id="dropzone-<%= btnSeq %>" enctype="multipart/form-data">
+                    <input type="file" name="file<%= btnSeq %>" class="custom-dropbutton" id="<%= fileDropId %>" onchange="checkExt(this);">
+                    <br><a href="#"><span class="fa fa-gear" data-toggle="tooltip" data-original-title="Only TXT files. Format:  <FieldName> <Datatype>"></span></a>
+                </form>
+                <br>
                 </div>
             <% } else { %>
               <div class="overflow-auto blocksExtended border border-dark invisible custom-scrollbar-css" id="<%= schemaId %>"><br><h3 style="width:100%;"><u><%= element.name %></u></h3>
                 <% if (tableAttributes.length==0){ %>
-                  <br><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br>
+                  <br><div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br></div>
                   <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)"><b>+</b></button><br>
                   <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
                 <% } else{ %>
                   <br>
+                  <% let flag2=false; %>
                   <% tableAttributes.forEach(function(item) { %>
                       <% if(element.name == item.table){ %>
-                        <input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this)"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br>
-
+                        <div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName" value="<%= item.fieldName %>"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" value="<%= item.fieldOption %>" disabled="true"><br></div>
+                        <% flag2=true; %>
+                      <% }  %>
+                    <% }); %>
+                      <% if (!flag2){ %>
+                        <div id="table-<%= element.name %>"><input type="text" placeholder="Field Name" class="fieldName"><select name="dataType" class="fieldType" onchange="populateOption(this,'Y')"><%- include("datatypes"); -%></select><input type="text" placeholder="Options" class="fieldOption" disabled="true"><br></div>
+                      <% }  %>
+                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
+                  <% let labelFlag2=false; %>
+                  <% tableOptions.forEach(function(item) { %>
+                      <% if(element.name == item.table){ %>
+                        <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= item.recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= item.recordDelimiter %></span></p>
+                        <% labelFlag2=true; %>
                       <% } %>
                   <% }); %>
-                  <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addAttribute" onclick="addNewAttribute(this)" ><b>+</b></button><br>
-                  <p>Record Count:<span class="input recordCnt" role="number" contenteditable><%= tableOptions[i].recordCnt %></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable><%= tableOptions[i].recordDelimiter %></span></p>
+                      <% if (!labelFlag2) { %>
+                        <p>Record Count:<span class="input recordCnt" role="number" contenteditable>100</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Record Delimiter:<span class="input recordDelimiter" role="textbox" contenteditable>~</span></p>
+                      <% } %>
                 <% } %>
 
+                <br><p><i>Or</i></p><br>
+
+                <form action="/file-upload/<%= btnSeq %>/table/<%= element.name %>" method="post" class="dropzone" id="dropzone-<%= btnSeq %>" enctype="multipart/form-data">
+                    <input type="file" name="file<%= btnSeq %>" class="custom-dropbutton" id="<%= fileDropId %>" onchange="checkExt(this);">
+                    <br><a href="#"><span class="fa fa-gear" data-toggle="tooltip" data-original-title="Only TXT files. Format:  <FieldName>, <Datatype>"></span></a>
+                </form>
+                <br>
                 </div>
             <% } %>
         <% } %>
@@ -91,27 +172,62 @@
 </script>
 
 <% } else { %>
+<div class="invisible relation">
+  <% tableAttributes.forEach(function(element){ %>
+  <label for="tableName" class="<%= element.table %>"><%= element.table %>.<%= element.fieldName %> </label>
+  <% }); %>
+</div>
+
 <div class="invisible hiddenTemplate">
-  <select name="tables" class="tabNameLeft"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
-  <select name="attributes" class="tabAttrLeft"><option value="" selected disabled hidden>Choose Field</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.fieldName %>"><%= element.fieldName %></option><% }) %></select>
+  <select name="tables" class="tabNameLeft" onchange="populateRelativeFields(this);"><option value="" selected disabled hidden>Choose Table</option>
+    <% tableData.forEach(function(element){ %>
+      <option value="<%= element.name %>"><%= element.name %></option>
+    <% }) %>
+  </select>
+  <select name="attributes" class="tabAttrLeft"><option value="" selected disabled hidden>Choose Field</option></select>
   <b> = </b>
-  <select name="tables" class="tabNameRight"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
-  <select name="attributes" class="tabAttrRight"><option value="" selected disabled hidden>Choose Field</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.fieldName %>"><%= element.fieldName %></option><% }) %></select>
+  <select name="tables" class="tabNameRight" onchange="populateRelativeFields(this);"><option value="" selected disabled hidden>Choose Table</option>
+    <% tableData.forEach(function(element){ %>
+      <option value="<%= element.name %>"><%= element.name %></option>
+    <% }) %>
+  </select>
+  <select name="attributes" class="tabAttrRight"><option value="" selected disabled hidden>Choose Field</option></select>
   <br>
 </div>
+
+<script>
+function populateRelativeFields(element){
+  const userSelection = element.value;
+
+  for(var cnt = 0; cnt < document.querySelectorAll(".relation label").length; cnt++){
+    let labelData = document.querySelectorAll(".relation label")[cnt].textContent.trim().split(".");
+    if (labelData[0].trim() == userSelection){
+      var option = document.createElement("option");
+      option.text = labelData[1].trim();
+      element.nextSibling.nextSibling.add(option);
+    }
+  }
+
+}
+</script>
 
 <div class="row marginLine tabsNav">
   <div class="overflow-auto blocksExtended blocksExtendedPlus border border-dark visible custom-scrollbar-css" id="relationships">
     <br><br><h3 style="width:100%;"><u>Define Table Relationships<i>(Optional)</i></u></h3><br>
-    <select name="tables" class="tabNameLeft"><option value="" selected disabled hidden>Choose Table</option>
-      <% tableAttributes.forEach(function(element){ %>
-        <option value="<%= element.table %>"><%= element.table %></option>
-      <% }) %></select>
+    <div><select name="tables" class="tabNameLeft" onchange="populateRelativeFields(this);"><option value="" selected disabled hidden>Choose Table</option>
+      <% tableData.forEach(function(element){ %>
+        <option value="<%= element.name %>"><%= element.name %></option>
+      <% }) %>
+    </select>
     <select name="attributes" class="tabAttrLeft"><option value="" selected disabled hidden>Choose Field</option></select>
     <b> = </b>
-    <select name="tables" class="tabNameRight"><option value="" selected disabled hidden>Choose Table</option><% tableAttributes.forEach(function(element){ %><option value="<%= element.table %>"><%= element.table %></option><% }) %></select>
+    <select name="tables" class="tabNameRight" onchange="populateRelativeFields(this);"><option value="" selected disabled hidden>Choose Table</option>
+      <% tableData.forEach(function(element){ %>
+        <option value="<%= element.name %>"><%= element.name %></option>
+      <% }) %>
+    </select>
     <select name="attributes" class="tabAttrRight"><option value="" selected disabled hidden>Choose Field</option></select>
-    <br>
+    <br></div>
     <button type="button" class="btn btn-primary btn-circle btn-sm border border-primary addRelationship" onclick="addNewRelationship(this)"><b>+</b></button>
   </div>
 <% } %>
@@ -150,6 +266,25 @@
   $(".option1").removeClass("active");
   $(".option2").addClass("active");
   $(".container-fluid").css('padding-top','50px');
+</script>
+
+<script>
+  $(document).ready(function(){
+
+          if($("#tableAttr").length > 0)
+          {
+              for (var i = 0; i < $("#tableAttr div").length; i++)
+              {
+                let tname = $("#tableAttr div")[i].querySelectorAll("label")[0].textContent;
+                let fname = $("#tableAttr div")[i].querySelectorAll("label")[1].textContent;
+                let ftype = $("#tableAttr div")[i].querySelectorAll("label")[2].textContent;
+
+                document.querySelector("#table-" + tname + " .fieldName[value='" + fname + "']").nextElementSibling.value = ftype;
+                populateOption(document.querySelector("#table-" + tname + " .fieldName[value='" + fname + "']").nextElementSibling,'N');
+              }
+          }
+
+  });
 </script>
 
 

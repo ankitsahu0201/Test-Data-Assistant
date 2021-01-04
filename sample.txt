@@ -1,0 +1,4 @@
+customer_id varchar,
+  txn_amout decimal(38,2),
+  txn_type varchar(100),
+cust_id int 
